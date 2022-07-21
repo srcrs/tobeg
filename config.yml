@@ -1,0 +1,12 @@
+base:
+  name: "tobeg"
+  url: "http://baidu.com"
+
+alipay:
+  appid: ""
+  private_key: ""
+  public_content_rsa2: ""
+  app_public_content: ""
+
+server:
+  port: 10020
