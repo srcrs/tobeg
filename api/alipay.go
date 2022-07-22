@@ -85,9 +85,6 @@ func generateClient() *alipay.Client {
 	// appid：应用ID
 	// privateKey 应用私钥
 	// isProd 是否是正式环境
-	zap.S().Info(global.Config.AlipayConfig.AppId)
-	zap.S().Info(cert.Appid)
-	zap.S().Info(cert.PrivateKey)
 	client, err := alipay.NewClient(cert.Appid, cert.PrivateKey, true)
 	if err != nil {
 		zap.S().Errorf("支付宝初始化错误: %s", err.Error())
@@ -166,6 +163,7 @@ func TradeQuery(ctx *gin.Context) {
 }
 
 // 交易查询接口
+// 废弃
 // https://opendocs.alipay.com/open/02ekfh?scene=23
 func TradeQuery2(ctx *gin.Context) {
 	client := generateClient()
