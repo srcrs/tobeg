@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS 
+    https://unpkg.com/element-ui@2.15.9/lib/theme-chalk/index.css -->
+  <link rel="stylesheet" href="../public/css/elementui.index.css">
+</head>
+
+<body>
+  <div id="app">
+    <el-container>
+      <el-header>
+        <h1>tobeg</h1>
+      </el-header>
+      <el-main>
+        <el-carousel indicator-position="outside">
+          <el-carousel-item v-for="item in toSells" :key="item">
+            <h2>${ item }</h2>
+          </el-carousel-item>
+        </el-carousel>
+        <el-input-number v-model="amount" :precision="2" :step="0.1" :max="10"></el-input-number>
+        <div style="margin: 10px 0;"></div>
+        <el-button @click="tradePreCreate()">赏你了</el-button>
+        <el-dialog title="支付宝" :visible.sync="qrCodeDialogVisible" width="30%" center>
+          <div id="qrCode" style="text-align:center;"></div>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="tradeClose(tradeNo)">取 消</el-button>
+          </span>
+        </el-dialog>
+      </el-main>
+      <el-footer>
+        <el-link href="https://github.com/asksowhat" target="_blank">By asksowhat</el-link>
+        <span>|</span>
+        <el-link href="https://github.com/asksowhat/tobeg" target="_blank">tobeg</el-link>
+      </el-footer>
+    </el-container>
+  </div>
+</body>
+
+<!-- import Vue before Element
+  https://cdn.jsdelivr.net/npm/vue@2.7.7/dist/vue.js -->
+<script src="../public/js/vue.min.js"></script>
+<!--  
+  https://unpkg.com/element-ui@2.15.9/lib/index.js -->
+<script src="../public/js/elementui.index.js"></script>
+<!-- import qrcodejs 
+  https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js -->
+<script src="../public/js/qrcode.min.js"></script>
+<!-- import jquery 
+https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
+<script src="../public/js/jquery.min.js"></script>
+
+<script>
+  new Vue({
+    el: '#app',
+    delimiters: ['${', '}'],
+    data: function () {
+      return {
+        amount: 0.1,
+        qrCodeDialogVisible: false,
+        tradeNo: undefined,
+        toSells: {{.toSells
+  }},
+      }
+    },
+    methods: {
+    qrCodeGeneration(qrCodeUrl) {
+      this.$nextTick(function () {
+        document.getElementById("qrCode").innerHTML = "";
+        let qrCode = new QRCode("qrCode", {
+          text: qrCodeUrl,
+          width: 200,
+          height: 200,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        })
+      })
+    },
+
+    // 设置订单号
+    setTradeNo(tradeNo) {
+      this.tradeNo = tradeNo;
+    },
+
+    // 轮询订单是否支付
+    tradeIsPay(tradeNo) {
+      var status, next;
+      var sum = 0
+      parentThis = this
+      function getStatus() {
+        $.ajax({
+          type: "POST",
+          timeout: 2000,
+          url: '{{.baseUrl}}/v1/alipay/trade/query',
+          data: {orderId: tradeNo},
+          contentType: "application/x-www-form-urlencoded",
+          success: function (resp) {
+            status = resp.data.status;
+            console.log(status);
+            if (status == "TRADE_SUCCESS") {
+              sum = 0;
+              clearInterval(next);
+              parentThis.$message({
+                message: '感谢小傻子',
+                type: 'success'
+              });
+            } else {
+              sum = sum + 1;
+              console.log(sum);
+
+              // 订单轮询超时
+              if (sum == 60) {
+                parentThis.tradeClose(tradeNo);
+                clearInterval(next);
+              }
+
+              // 主动手动关闭
+              if (parentThis.tradeNo === undefined) {
+                clearInterval(next);
+              }
+            }
+          },
+          error: function (xhr, status, error) {
+            parentThis.$message.error("轮询订单是否支付失败:" + error);
+          },
+        });
+      }
+      if (status != "TRADE_SUCCESS") {
+        next = setInterval(getStatus, 3000);
+      }
+    },
+
+    // 关闭预支付订单
+    tradeClose(tradeNo) {
+      parentThis = this
+      $.ajax({
+        type: "POST",
+        timeout: 2000,
+        url: '{{.baseUrl}}/v1/alipay/trade/tradeclose',
+        data: {orderId: tradeNo},
+        contentType: "application/x-www-form-urlencoded",
+        success: function (resp) {
+          console.log(resp);
+          parentThis.qrCodeDialogVisible = false;
+          parentThis.amount = 0.1;
+          parentThis.tradeNo = undefined;
+          parentThis.$message({
+            message: '订单已关闭',
+            type: 'warning'
+          });
+        },
+        error: function (error) {
+          parentThis.$message.error("订单关闭失败:" + error);
+        },
+      });
+    },
+
+    // 创建预支付订单
+    tradePreCreate() {
+      parentThis = this
+      $.ajax({
+        type: "POST",
+        timeout: 2000,
+        url: '{{.baseUrl}}/v1/alipay/trade/precreate',
+        data: {amount: parentThis.amount},
+        contentType: "application/x-www-form-urlencoded",
+        success: function (resp) {
+          console.log(resp.data.qrCode);
+          parentThis.setTradeNo(resp.data.tradeNo);
+          parentThis.qrCodeDialogVisible = true;
+          parentThis.qrCodeGeneration(resp.data.qrCode);
+          parentThis.tradeIsPay(resp.data.tradeNo);
+        },
+        error: function (xhr, status, error) {
+          parentThis.$message.error("创建预支付订单失败:" + error);
+        },
+      })
+    }
+  }
+  })
+</script>
+<style>
+  .el-header,
+  .el-footer {
+    text-align: center;
+    height: 10%;
+  }
+
+  .el-main {
+    text-align: center;
+    height: 80%;
+    margin-right: 15%;
+    margin-left: 15%;
+  }
+
+  .el-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .el-dialog__header {
+    text-align: center;
+  }
+
+  #qrCode>img {
+    margin: 0 auto;
+  }
+
+  .el-carousel__item h2 {
+    font-size: 18px;
+    opacity: 0.75;
+    line-height: 300px;
+    margin: 0;
+  }
+</style>
+
+</html>
