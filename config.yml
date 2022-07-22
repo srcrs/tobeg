@@ -1,6 +1,7 @@
 base:
-  name: "tobeg"
+  title: "tobeg"
   url: "http://baidu.com"
+  favicon: "favicon.png"
   toSells:
     - "瞧一瞧、看一看、这里来个穷要饭哎"
     - "大娘好，大爷善，可怜可怜俺这个穷光蛋"

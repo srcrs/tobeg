@@ -7,8 +7,9 @@ type Config struct {
 }
 
 type BaseConfig struct {
-	Name    string   `mapstructure:"name" json:"name"`
+	Title   string   `mapstructure:"title" json:"title"`
 	Url     string   `mapstructure:"url" json:"url"`
+	Favicon string   `mapstructure:"favicon" json:"favicon"`
 	ToSells []string `mapstructure:"toSells" json:"toSells"`
 }
 
