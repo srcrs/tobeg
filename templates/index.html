@@ -106,6 +106,8 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
             if (status == "TRADE_SUCCESS") {
               sum = 0;
               clearInterval(next);
+              parentThis.qrCodeDialogVisible = false;
+              parentThis.tradeNo = undefined;
               parentThis.$message({
                 message: '感谢小傻子',
                 type: 'success'
@@ -138,7 +140,10 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
 
     // 关闭预支付订单
     tradeClose(tradeNo) {
-      parentThis = this
+      if (tradeNo === undefined) {
+        return;
+      }
+      parentThis = this;
       $.ajax({
         type: "POST",
         timeout: 2000,
