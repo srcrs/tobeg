@@ -36,7 +36,7 @@
 ├── cert #证书实体
 │   └── cert.go
 ├── config #配置项实体
-│   └â─ config.go
+│   └── config.go
 ├── config.yml #配置文件
 ├── forms
 │   └── alipay.go
@@ -219,7 +219,7 @@ services:
 docker-compose up -d
 ```
 
-这里有一点要注意的是，如果你在 config.yml 更改了端口配置，需要将docker-compose.yml的ports配置，也要做相应的调整，或者直接删除此配置。
+这里有一点要注意的是，如果你在 config.yml 更改了端口配置，需要将 docker-compose.yml 的ports配置，也要做相应的调整。
 
 # 致谢（不分先后）
 
