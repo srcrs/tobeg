@@ -9,6 +9,7 @@
     https://unpkg.com/element-ui@2.15.9/lib/theme-chalk/index.css -->
   <link rel="stylesheet" href="../public/css/elementui.index.css">
   <link rel="shortcut icon" href="../public/images/{{.favicon}}">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 
 <body>
@@ -18,7 +19,7 @@
         <h1>tobeg</h1>
       </el-header>
       <el-main>
-        <el-carousel indicator-position="outside">
+        <el-carousel indicator-position="none">
           <el-carousel-item v-for="item in toSells" :key="item">
             <h2>${ item }</h2>
           </el-carousel-item>
@@ -26,7 +27,7 @@
         <el-input-number v-model="amount" :precision="2" :step="0.1" :max="10"></el-input-number>
         <div style="margin: 10px 0;"></div>
         <el-button @click="tradePreCreate()">赏你了</el-button>
-        <el-dialog title="支付宝" :visible.sync="qrCodeDialogVisible" @close="tradeClose(tradeNo)" width="30%" center>
+        <el-dialog title="支付宝" :visible.sync="qrCodeDialogVisible" @close="tradeClose(tradeNo)" center>
           <div id="qrCode" style="text-align:center;"></div>
           <span slot="footer" class="dialog-footer">
             <el-button @click="qrCodeDialogVisible = false">取 消</el-button>
@@ -200,8 +201,23 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
   .el-main {
     text-align: center;
     height: 80%;
-    margin-right: 15%;
-    margin-left: 15%;
+  }
+
+  @media screen and (min-width: 400px) {
+    .el-main {
+      margin-left: 15%;
+      margin-right: 15%;
+    }
+
+    .el-dialog {
+      width: 24%
+    }
+  }
+
+  @media screen and (max-width: 400px) {
+    .el-dialog {
+      width: 70%;
+    }
   }
 
   .el-container {
