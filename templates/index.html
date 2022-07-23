@@ -29,7 +29,7 @@
         <el-dialog title="支付宝" :visible.sync="qrCodeDialogVisible" @close="tradeClose(tradeNo)" width="30%" center>
           <div id="qrCode" style="text-align:center;"></div>
           <span slot="footer" class="dialog-footer">
-            <el-button @click="tradeClose(tradeNo)">取 消</el-button>
+            <el-button @click="qrCodeDialogVisible = false">取 消</el-button>
           </span>
         </el-dialog>
       </el-main>
