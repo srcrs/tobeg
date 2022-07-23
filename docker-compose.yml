@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  tobeg:
+    build:
+      context: .
+    container_name: tobeg
+    restart: always
+    ports: 
+      - 10020:10020
+    volumes:
+      - $PWD/config.yml:/config.yml
