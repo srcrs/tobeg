@@ -103,7 +103,6 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
           contentType: "application/x-www-form-urlencoded",
           success: function (resp) {
             status = resp.data.status;
-            console.log(status);
             if (status == "TRADE_SUCCESS") {
               sum = 0;
               clearInterval(next);
@@ -115,7 +114,6 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
               });
             } else {
               sum = sum + 1;
-              console.log(sum);
 
               // 订单轮询超时
               if (sum == 60) {
@@ -152,7 +150,6 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
         data: {orderId: tradeNo},
         contentType: "application/x-www-form-urlencoded",
         success: function (resp) {
-          console.log(resp);
           parentThis.qrCodeDialogVisible = false;
           parentThis.amount = 0.1;
           parentThis.tradeNo = undefined;
@@ -177,7 +174,6 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
         data: {amount: parentThis.amount},
         contentType: "application/x-www-form-urlencoded",
         success: function (resp) {
-          console.log(resp.data.qrCode);
           parentThis.setTradeNo(resp.data.tradeNo);
           parentThis.qrCodeDialogVisible = true;
           parentThis.qrCodeGeneration(resp.data.qrCode);
