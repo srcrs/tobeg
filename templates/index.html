@@ -33,6 +33,18 @@
             <el-button @click="qrCodeDialogVisible = false">取 消</el-button>
           </span>
         </el-dialog>
+        <el-divider></el-divider>
+        <el-table :data="flowData" height="250" stripe>
+          <el-table-column prop="UserName" label="名称">
+          </el-table-column>
+          <el-table-column prop="Amount" label="金额">
+          </el-table-column>
+          <el-table-column prop="UpdateTime" label="更新时间">
+          </el-table-column>
+        </el-table>
+        <el-pagination :page-size="5" :current-page="currentPage" layout="prev, next"
+          @current-change="currentPageChange" :total="total">
+        </el-pagination>
       </el-main>
       <el-footer>
         <el-link href="https://github.com/asksowhat/tobeg" target="_blank">tobeg</el-link>
@@ -67,7 +79,16 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
         tradeNo: undefined,
         toSells: {{.toSells
   }},
+    flowData: [],
+    total: 10,
+    pageSize: 5,
+    headFlowId: 0,
+    endFlowId: 0,
+    currentPage: 1,
       }
+    },
+    created: function () {
+      this.currentPageChange(1);
     },
     methods: {
     qrCodeGeneration(qrCodeUrl) {
@@ -97,7 +118,7 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
       function getStatus() {
         $.ajax({
           type: "POST",
-          timeout: 2000,
+          timeout: 4000,
           url: '{{.baseUrl}}/v1/alipay/trade/query',
           data: {orderId: tradeNo},
           contentType: "application/x-www-form-urlencoded",
@@ -145,7 +166,7 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
       parentThis = this;
       $.ajax({
         type: "POST",
-        timeout: 2000,
+        timeout: 4000,
         url: '{{.baseUrl}}/v1/alipay/trade/tradeclose',
         data: {orderId: tradeNo},
         contentType: "application/x-www-form-urlencoded",
@@ -169,7 +190,7 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
       parentThis = this
       $.ajax({
         type: "POST",
-        timeout: 2000,
+        timeout: 4000,
         url: '{{.baseUrl}}/v1/alipay/trade/precreate',
         data: {amount: parentThis.amount},
         contentType: "application/x-www-form-urlencoded",
@@ -183,7 +204,33 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
           parentThis.$message.error("创建预支付订单失败:" + error);
         },
       })
-    }
+    },
+
+    // 翻页
+    currentPageChange(curPage) {
+      parentThis = this
+      $.ajax({
+        type: "POST",
+        timeout: 4000,
+        url: '{{.baseUrl}}/v1/flow/getflowlist',
+        data: {
+          flowId: curPage < parentThis.currentPage ? parentThis.headFlowId : parentThis.endFlowId,
+          count: parentThis.pageSize,
+          type: curPage < parentThis.currentPage ? "prev" : "next",
+        },
+        contentType: "application/x-www-form-urlencoded",
+        success: function (resp) {
+          parentThis.total = resp.data.total;
+          parentThis.flowData = resp.data.flows;
+          parentThis.headFlowId = resp.data.headFlowId;
+          parentThis.endFlowId = resp.data.endFlowId;
+        },
+        error: function (xhr, status, error) {
+          parentThis.$message.error("获取支付列表失败:" + error);
+        },
+      })
+      this.currentPage = curPage
+    },
   }
   })
 </script>
@@ -207,6 +254,13 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
 
     .el-dialog {
       width: 24%
+    }
+
+    .el-table {
+      width: 70%;
+      margin-left: 15%;
+      margin-right: 15%;
+      ;
     }
   }
 
