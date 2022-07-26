@@ -20,5 +20,7 @@ func Routers() *gin.Engine {
 	ApiGroup := Router.Group("v1")
 	router.InitAlipayRouter(ApiGroup)
 	router.InitTmplRouter(Router.Group(""))
+	router.InitFlowRouter(ApiGroup)
+
 	return Router
 }
