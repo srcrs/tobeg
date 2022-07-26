@@ -15,6 +15,9 @@ func main() {
 	// 初始化证书配置
 	initialize.InitCert()
 
+	// 初始化数据库
+	initialize.InitSQLite3()
+
 	// 初始化路由
 	Router := initialize.Routers()
 
