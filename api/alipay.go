@@ -7,7 +7,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"tobeg/db"
 	"tobeg/global"
+	"tobeg/model"
 
 	"tobeg/cert"
 
@@ -70,9 +72,29 @@ func TradePrecreate(ctx *gin.Context) {
 func TradePaySuccess(ctx *gin.Context) {
 	outTradeNo := ctx.PostForm("out_trade_no")
 	tradeStatus := ctx.PostForm("trade_status")
+
+	// 验证appId
+	appId := ctx.PostForm("app_id")
+	if appId != cert.Appid {
+		ctx.JSON(http.StatusBadGateway, gin.H{
+			"msg": "非法请求",
+		})
+		return
+	}
+
 	if tradeStatus == "TRADE_SUCCESS" {
 		global.PayStatus[outTradeNo] = true
+		amount, _ := strconv.ParseFloat(ctx.PostForm("total_amount"), 64)
+		zap.S().Info(amount)
+		db.InsertFlow(model.Flow{
+			TradeId:    ctx.PostForm("trade_no"),
+			OutTradeId: ctx.PostForm("out_trade_no"),
+			Amount:     amount,
+			Status:     tradeStatus,
+			UserName:   ctx.PostForm("buyer_logon_id"),
+		})
 	}
+
 	ctx.JSON(http.StatusOK, "success")
 	timeAfterTrigger := time.After(10 * time.Second)
 	<-timeAfterTrigger
