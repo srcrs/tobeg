@@ -10,3 +10,4 @@ services:
       - 10020:10020
     volumes:
       - $PWD/config.yml:/config.yml
+      - $PWD/flow.db:/flow.db
