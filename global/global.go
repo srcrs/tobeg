@@ -1,6 +1,8 @@
 package global
 
-import "tobeg/config"
+import (
+	"tobeg/config"
+)
 
 var (
 	Config    *config.Config = &config.Config{}
