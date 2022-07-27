@@ -20,7 +20,8 @@
 <img src="https://img.shields.io/github/languages/code-size/asksowhat/tobeg?color=critical">
 </p>
 
-![tobeg](https://bl6pap003files.storage.live.com/y4mWm1RQSHQ1zErPe15uxsV9Lhnz2uoWdMPFJor15JsvOJ1tdoW-69G5QPXWgN1_2JgWI_KJTvgwmPdowqoeqBB33P5JyTMaSbM9uXvRiyh52GqN76JolObMUpxwvDzBpIeonlepLaC1kAmg7a7Vd8uW1kzqrW5nzYn2wCYhv_tLDBnLCEcNJMLj27bl-scVmy2?width=957&height=571&cropmode=none)
+![tobeg](https://bl6pap003files.storage.live.com/y4mBREf1EIU0h9IW47iLsjHx1r-fkuj8cF3mx5D76bwZA7CF-xNtkKTBhjeJfOzNjiTty3ZLU9bhcYGjHJyQZRS2h1FjSVVCVEyMFqiER1Lv4IFJrxkRJRpXRyfRd-BiGs-ErCFKRA6iaa_lTOsR66HHqfA5teq4mKUF0A44lbc3kmlBYPfBxZymB8LXHldlpDi?width=1069&height=663&cropmode=none)
+
 
 # 项目说明
 
@@ -32,12 +33,18 @@
 .
 ├── api #api接口
 │   ├── alipay.go
+│   ├── flow.go
 │   └── tmpl.go
 ├── cert #证书实体
 │   └── cert.go
 ├── config #配置项实体
 │   └── config.go
 ├── config.yml #配置文件
+├── db #db数据库操作
+│   └── sqlite3.go
+├── docker-compose.yml
+├── Dockerfile
+├── flow.db #sqlite存储
 ├── forms
 │   └── alipay.go
 ├── global #全局变量配置
@@ -48,11 +55,14 @@
 │   ├── cert.go
 │   ├── config.go
 │   ├── logger.go
-│   └── router.go
+│   ├── router.go
+│   └── sqlite3.go
 ├── LICENSE
 ├── main.go
 ├── middlerwares #中间件
 │   └── cors.go
+├── model #数据库表实体
+│   └── flow.go
 ├── public #静态文件
 │   ├── css
 │   │   ├── elementui.index.css
@@ -69,9 +79,12 @@
 ├── README.md
 ├── router #路由配置
 │   ├── alipay.go
+│   ├── flow.go
 │   └── tmpl.go
-└── templates #模版引擎
-    └── index.html
+├── templates #模版引擎
+│   └── index.html
+└── utils #工具模块
+    └── db.go
 ```
 
 # 准备
@@ -134,6 +147,7 @@ title | "tobeg" | 网站的title
 url | "http://baidu.com" | 网站对外访问地址，关乎到支付回调判断，如站点访问地址是 https://google.com ，那么这个字段就要填写为 https://google.com 。
 favicon | "favicon.png" | 站点图标，存储位置在/public/images/favicon.png，新图片可覆盖也可代替，但要注意这里要与实际图片文件名相同。
 toSells | 字符串列表 | 在走马灯处显示
+thank | "谢谢你, 好人" | 支付成功后的提示
 
 alipay 主要是配置支付宝相关的信息
 
@@ -157,6 +171,7 @@ base:
   title: "tobeg"
   url: "http://baidu.com"
   favicon: "favicon.png"
+  thank: "谢谢你, 好人"
   toSells:
     - "瞧一瞧、看一看、这里来个穷要饭哎"
     - "大娘好，大爷善，可怜可怜俺这个穷光蛋"
@@ -211,6 +226,7 @@ services:
       - 10020:10020
     volumes:
       - $PWD/config.yml:/config.yml
+      - $PWD/flow.db:/flow.db
 ```
 
 - 运行
