@@ -19,7 +19,7 @@
         <h1>tobeg</h1>
       </el-header>
       <el-main>
-        <el-carousel indicator-position="none">
+        <el-carousel indicator-position="none" height="200px">
           <el-carousel-item v-for="item in toSells" :key="item">
             <h2>${ item }</h2>
           </el-carousel-item>
@@ -34,7 +34,7 @@
           </span>
         </el-dialog>
         <el-divider></el-divider>
-        <el-table :data="flowData" height="250" stripe>
+        <el-table :data="flowData" size="mini" stripe>
           <el-table-column prop="UserName" label="名称">
           </el-table-column>
           <el-table-column prop="Amount" label="金额">
@@ -289,7 +289,7 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
   .el-carousel__item h2 {
     font-size: 18px;
     opacity: 0.75;
-    line-height: 300px;
+    line-height: 200px;
     margin: 0;
   }
 </style>
