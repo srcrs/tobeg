@@ -14,5 +14,6 @@ func WebIndex(ctx *gin.Context) {
 		"toSells": global.Config.BaseConfig.ToSells,
 		"favicon": global.Config.BaseConfig.Favicon,
 		"title":   global.Config.BaseConfig.Title,
+		"thank":   global.Config.BaseConfig.Thank,
 	})
 }

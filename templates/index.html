@@ -88,7 +88,7 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
       }
     },
     created: function () {
-      this.currentPageChange(1);
+      this.initFlowtable();
     },
     methods: {
     qrCodeGeneration(qrCodeUrl) {
@@ -103,6 +103,14 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
           correctLevel: QRCode.CorrectLevel.H
         })
       })
+    },
+
+    // 初始化flowtable
+    initFlowtable() {
+      this.headFlowId = 0;
+      this.endFlowId = 0;
+      this.currentPage = 1;
+      this.currentPageChange(1);
     },
 
     // 设置订单号
@@ -130,107 +138,108 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
               parentThis.qrCodeDialogVisible = false;
               parentThis.tradeNo = undefined;
               parentThis.$message({
-                message: '感谢小傻子',
-                type: 'success'
-              });
-            } else {
-              sum = sum + 1;
+                message: {{.thank}},
+            type: 'success'
+          });
+        parentThis.initFlowtable()
+      } else {
+        sum = sum + 1;
 
-              // 订单轮询超时
-              if (sum == 60) {
-                parentThis.tradeClose(tradeNo);
-                clearInterval(next);
-              }
+        // 订单轮询超时
+        if(sum == 60) {
+    parentThis.tradeClose(tradeNo);
+    clearInterval(next);
+  }
 
-              // 主动手动关闭
-              if (parentThis.tradeNo === undefined) {
-                clearInterval(next);
-              }
+  // 主动手动关闭
+  if (parentThis.tradeNo === undefined) {
+    clearInterval(next);
+  }
             }
           },
-          error: function (xhr, status, error) {
-            parentThis.$message.error("轮询订单是否支付失败:" + error);
-          },
+  error: function (xhr, status, error) {
+    parentThis.$message.error("轮询订单是否支付失败:" + error);
+  },
         });
       }
-      if (status != "TRADE_SUCCESS") {
-        next = setInterval(getStatus, 3000);
-      }
+  if (status != "TRADE_SUCCESS") {
+    next = setInterval(getStatus, 3000);
+  }
     },
 
-    // 关闭预支付订单
-    tradeClose(tradeNo) {
-      if (tradeNo === undefined) {
-        return;
-      }
-      parentThis = this;
-      $.ajax({
-        type: "POST",
-        timeout: 4000,
-        url: '{{.baseUrl}}/v1/alipay/trade/tradeclose',
-        data: {orderId: tradeNo},
-        contentType: "application/x-www-form-urlencoded",
-        success: function (resp) {
-          parentThis.qrCodeDialogVisible = false;
-          parentThis.amount = 0.1;
-          parentThis.tradeNo = undefined;
-          parentThis.$message({
-            message: '订单已关闭',
-            type: 'warning'
-          });
-        },
-        error: function (error) {
-          parentThis.$message.error("订单关闭失败:" + error);
-        },
-      });
-    },
+  // 关闭预支付订单
+  tradeClose(tradeNo) {
+    if (tradeNo === undefined) {
+      return;
+    }
+    parentThis = this;
+    $.ajax({
+      type: "POST",
+      timeout: 4000,
+      url: '{{.baseUrl}}/v1/alipay/trade/tradeclose',
+      data: {orderId: tradeNo},
+      contentType: "application/x-www-form-urlencoded",
+      success: function (resp) {
+        parentThis.qrCodeDialogVisible = false;
+        parentThis.amount = 0.1;
+        parentThis.tradeNo = undefined;
+        parentThis.$message({
+          message: '订单已关闭',
+          type: 'warning'
+        });
+      },
+      error: function (error) {
+        parentThis.$message.error("订单关闭失败:" + error);
+      },
+    });
+  },
 
-    // 创建预支付订单
-    tradePreCreate() {
-      parentThis = this
-      $.ajax({
-        type: "POST",
-        timeout: 4000,
-        url: '{{.baseUrl}}/v1/alipay/trade/precreate',
-        data: {amount: parentThis.amount},
-        contentType: "application/x-www-form-urlencoded",
-        success: function (resp) {
-          parentThis.setTradeNo(resp.data.tradeNo);
-          parentThis.qrCodeDialogVisible = true;
-          parentThis.qrCodeGeneration(resp.data.qrCode);
-          parentThis.tradeIsPay(resp.data.tradeNo);
-        },
-        error: function (xhr, status, error) {
-          parentThis.$message.error("创建预支付订单失败:" + error);
-        },
-      })
-    },
+  // 创建预支付订单
+  tradePreCreate() {
+    parentThis = this
+    $.ajax({
+      type: "POST",
+      timeout: 4000,
+      url: '{{.baseUrl}}/v1/alipay/trade/precreate',
+      data: {amount: parentThis.amount},
+      contentType: "application/x-www-form-urlencoded",
+      success: function (resp) {
+        parentThis.setTradeNo(resp.data.tradeNo);
+        parentThis.qrCodeDialogVisible = true;
+        parentThis.qrCodeGeneration(resp.data.qrCode);
+        parentThis.tradeIsPay(resp.data.tradeNo);
+      },
+      error: function (xhr, status, error) {
+        parentThis.$message.error("创建预支付订单失败:" + error);
+      },
+    })
+  },
 
-    // 翻页
-    currentPageChange(curPage) {
-      parentThis = this
-      $.ajax({
-        type: "POST",
-        timeout: 4000,
-        url: '{{.baseUrl}}/v1/flow/getflowlist',
-        data: {
-          flowId: curPage < parentThis.currentPage ? parentThis.headFlowId : parentThis.endFlowId,
-          count: parentThis.pageSize,
-          type: curPage < parentThis.currentPage ? "prev" : "next",
-        },
-        contentType: "application/x-www-form-urlencoded",
-        success: function (resp) {
-          parentThis.total = resp.data.total;
-          parentThis.flowData = resp.data.flows;
-          parentThis.headFlowId = resp.data.headFlowId;
-          parentThis.endFlowId = resp.data.endFlowId;
-        },
-        error: function (xhr, status, error) {
-          parentThis.$message.error("获取支付列表失败:" + error);
-        },
-      })
-      this.currentPage = curPage
-    },
+  // 翻页
+  currentPageChange(curPage) {
+    parentThis = this
+    $.ajax({
+      type: "POST",
+      timeout: 4000,
+      url: '{{.baseUrl}}/v1/flow/getflowlist',
+      data: {
+        flowId: curPage < parentThis.currentPage ? parentThis.headFlowId : parentThis.endFlowId,
+        count: parentThis.pageSize,
+        type: curPage < parentThis.currentPage ? "prev" : "next",
+      },
+      contentType: "application/x-www-form-urlencoded",
+      success: function (resp) {
+        parentThis.total = resp.data.total;
+        parentThis.flowData = resp.data.flows;
+        parentThis.headFlowId = resp.data.headFlowId;
+        parentThis.endFlowId = resp.data.endFlowId;
+      },
+      error: function (xhr, status, error) {
+        parentThis.$message.error("获取支付列表失败:" + error);
+      },
+    })
+    this.currentPage = curPage
+  },
   }
   })
 </script>

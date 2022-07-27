@@ -10,6 +10,7 @@ type BaseConfig struct {
 	Title   string   `mapstructure:"title" json:"title"`
 	Url     string   `mapstructure:"url" json:"url"`
 	Favicon string   `mapstructure:"favicon" json:"favicon"`
+	Thank   string   `mapstructure:"thank" json:"thank"`
 	ToSells []string `mapstructure:"toSells" json:"toSells"`
 }
 
