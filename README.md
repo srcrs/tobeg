@@ -210,6 +210,12 @@ git clone https://github.com/asksowhat/tobeg.git && cd tobeg
 docker-compose up -d
 ```
 
+这里会产生一个无用镜像，使用下面命令，便可删除
+
+```bash
+docker rmi $(docker images -f "dangling=true" -q)
+```
+
 ## 使用我的镜像
 
 将下面内容，覆盖 docker-compose.yml
