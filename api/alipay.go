@@ -86,7 +86,7 @@ func TradePaySuccess(ctx *gin.Context) {
 		global.PayStatus[outTradeNo] = true
 		amount, _ := strconv.ParseFloat(ctx.PostForm("total_amount"), 64)
 		zap.S().Info(amount)
-		db.InsertFlow(model.Flow{
+		db.InsertFlow(&model.Flow{
 			TradeId:    ctx.PostForm("trade_no"),
 			OutTradeId: ctx.PostForm("out_trade_no"),
 			Amount:     amount,
@@ -146,7 +146,7 @@ func TradeClose(ctx *gin.Context) {
 
 	bm.Set("out_trade_no", orderId)
 
-	// 穿件预支付二维码
+	// 创建预支付二维码
 	aliRsp, err := client.TradeCancel(context.Background(), bm)
 	if err != nil {
 		zap.S().Errorf("取消订单失败: %s", err.Error())

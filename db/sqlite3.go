@@ -4,32 +4,32 @@ import (
 	"sort"
 	"strconv"
 	"time"
+	"tobeg/global"
 	"tobeg/model"
 	"tobeg/utils"
 
 	"go.uber.org/zap"
+	"gorm.io/gorm/clause"
 )
 
-// 插入支付记录
-func InsertFlow(flow model.Flow) {
+func InsertFlow(flow *model.Flow) {
 	zap.S().Info(flow)
-	db := utils.GenerateDB()
-	defer db.Close()
+	timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
+	flow.CreateTime, flow.UpdateTime = timeStamp, timeStamp
+	result := global.DB.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "outTradeId"}},
+		DoUpdates: clause.AssignmentColumns([]string{"status", "updateTime"}),
+	}).Create(flow)
 
-	stmt, err := db.Prepare("insert into flow (id, tradeId, outTradeId, username, amount, status, createTime, updateTime)" +
-		" values (NULL, ?, ?, ?, ?, ?, ?, ?) on conflict(outTradeId) do update set status=excluded.status, updateTime=excluded.updateTime;")
-	checkErr(err)
-
-	timeStamp := time.Now().Unix()
-	res, err := stmt.Exec(flow.TradeId, flow.OutTradeId, flow.UserName, flow.Amount, flow.Status, timeStamp, timeStamp)
-	zap.S().Info("插入结果:", res)
+	if result.Error != nil {
+		zap.S().Info("插入支付流水异常: %s", result.Error.Error())
+	}
 }
 
 // flowId为0 从最后开始找
 // count查找个数
 func GetFlowList(flowId, count int, pageType string) []model.Flow {
-	db := utils.GenerateDB()
-	defer db.Close()
+	var flows []model.Flow
 
 	cond, sorted := "", ""
 	if flowId == 0 {
@@ -41,27 +41,16 @@ func GetFlowList(flowId, count int, pageType string) []model.Flow {
 			cond, sorted = "id < "+strconv.Itoa(flowId), "desc"
 		}
 	}
-	zap.S().Info(flowId, count)
-	rows, err := db.Query("select * from flow where " + cond + " order by id " + sorted + " limit " + strconv.Itoa(count))
-	checkErr(err)
-	defer rows.Close()
 
-	arr := make([]model.Flow, 0)
+	global.DB.Limit(count).Order("id " + sorted).Where(cond).Find(&flows)
 
-	for rows.Next() {
-		flowModel := model.Flow{}
-		rows.Scan(&flowModel.Id, &flowModel.TradeId, &flowModel.OutTradeId, &flowModel.UserName, &flowModel.Amount, &flowModel.Status, &flowModel.CreateTime, &flowModel.UpdateTime)
-		arr = append(arr, flowModel)
-	}
-	err = rows.Err()
-	checkErr(err)
+	formatFlow(flows)
 
-	formatFlow(arr)
-
-	sort.Slice(arr, func(i, j int) bool {
-		return arr[i].Id > arr[j].Id
+	sort.Slice(flows, func(i, j int) bool {
+		return flows[i].Id > flows[j].Id
 	})
-	return arr
+
+	return flows
 }
 
 func formatFlow(arr []model.Flow) {
@@ -74,24 +63,8 @@ func formatFlow(arr []model.Flow) {
 	}
 }
 
-func CountFlow() int {
-	db := utils.GenerateDB()
-	defer db.Close()
-
-	rows, err := db.Query("select count(id) count from flow;")
-	checkErr(err)
-	defer rows.Close()
-
-	var count int
-	for rows.Next() {
-		rows.Scan(&count)
-	}
+func CountFlow() int64 {
+	var count int64
+	global.DB.Model(&model.Flow{}).Count(&count)
 	return count
-}
-
-func checkErr(err error) {
-	if err != nil {
-		zap.S().Infof("数据库操作失败: %s", err.Error())
-		return
-	}
 }
