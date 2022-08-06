@@ -30,7 +30,7 @@ FROM scratch
 COPY ./templates /templates
 COPY ./public/ /public
 COPY config.yml config.yml
-COPY flow.db flow.db
+COPY tobeg.db tobeg.db
 
 COPY --from=builder /build/tobeg /
 
