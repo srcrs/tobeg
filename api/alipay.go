@@ -32,6 +32,9 @@ func TradePrecreate(ctx *gin.Context) {
 	}
 	client := generateClient()
 	if client == nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"msg": "内部错误，支付宝客户端生成失败",
+		})
 		return
 	}
 	client.SetReturnUrl(global.Config.BaseConfig.Url + "/v1/alipay/trade/paysuccess").
@@ -47,7 +50,7 @@ func TradePrecreate(ctx *gin.Context) {
 	bm.Set("out_trade_no", orderId)
 	bm.Set("total_amount", fmt.Sprintf("%.2f", price))
 
-	// 穿件预支付二维码
+	// 创建预支付二维码
 	aliRsp, err := client.TradePrecreate(context.Background(), bm)
 	if err != nil {
 		zap.S().Errorf("支付宝创建预支付失败")
@@ -150,6 +153,9 @@ func TradeClose(ctx *gin.Context) {
 	aliRsp, err := client.TradeCancel(context.Background(), bm)
 	if err != nil {
 		zap.S().Errorf("取消订单失败: %s", err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"msg": "订单取消失败",
+		})
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
