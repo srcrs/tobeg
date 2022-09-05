@@ -30,7 +30,7 @@
         <el-dialog title="支付宝" :visible.sync="qrCodeDialogVisible" @close="tradeClose(tradeNo)" center>
           <div id="qrCode" style="text-align:center;"></div>
           <span slot="footer" class="dialog-footer">
-            <el-button @click="qrCodeDialogVisible = false">取 消</el-button>
+            <el-link :href="qrCodeUrl" target="_blank">[点击跳转APP支付]</el-link>
           </span>
         </el-dialog>
         <el-divider></el-divider>
@@ -85,6 +85,7 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
     headFlowId: 0,
     endFlowId: 0,
     currentPage: 1,
+    qrCodeUrl: '',
       }
     },
     created: function () {
@@ -183,6 +184,7 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
         parentThis.qrCodeDialogVisible = false;
         parentThis.amount = 0.1;
         parentThis.tradeNo = undefined;
+        parentThis.qrCodeUrl = '';
         parentThis.$message({
           message: '订单已关闭',
           type: 'warning'
@@ -206,6 +208,7 @@ https://unpkg.com/jquery@3.6.0/dist/jquery.min.js -->
       success: function (resp) {
         parentThis.setTradeNo(resp.data.tradeNo);
         parentThis.qrCodeDialogVisible = true;
+        parentThis.qrCodeUrl = resp.data.qrCode;
         parentThis.qrCodeGeneration(resp.data.qrCode);
         parentThis.tradeIsPay(resp.data.tradeNo);
       },
